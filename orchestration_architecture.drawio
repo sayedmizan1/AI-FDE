@@ -1,0 +1,136 @@
+<mxfile host="app.diagrams.net" modified="2026-10-04T17:05:00.000Z" agent="Antigravity" version="24.0.0" type="device">
+  <diagram id="FDE_Orchestration_Architecture" name="FDE Supply Chain Orchestrator">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="#0B0F19" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- TITLE -->
+        <mxCell id="title" value="FDE Cold-Chain Logistics Agent - LangGraph Orchestration Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#F8FAFC;" vertex="1" parent="1">
+          <mxGeometry x="250" y="20" width="670" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- USER / DISPATCHER -->
+        <mxCell id="user" value="👤 Dispatcher Console&#xa;(Streamlit / CLI Chat Loop)" style="shape=mxgraph.cisco.misc.user;html=1;fillColor=#1E293B;strokeColor=#38BDF8;strokeWidth=2;fontColor=#F8FAFC;align=center;fontSize=13;fontStyle=1;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="60" y="250" width="160" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ORCHESTRATOR CONTAINER -->
+        <mxCell id="langgraph_box" value="LangGraph State Machine (Compiled Workflow)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#6366F1;strokeWidth=2;fontColor=#A5B4FC;fontSize=14;fontStyle=1;startSize=30;rounded=1;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="280" y="90" width="460" height="430" as="geometry" />
+        </mxCell>
+
+        <!-- START NODE -->
+        <mxCell id="start_node" value="START" style="ellipse;whiteSpace=wrap;html=1;fillColor=#10B981;strokeColor=#059669;strokeWidth=2;fontColor=#FFFFFF;fontStyle=1;fontSize=12;" vertex="1" parent="langgraph_box">
+          <mxGeometry x="40" y="70" width="80" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- REASONER NODE -->
+        <mxCell id="reasoner_node" value="🧠 Reasoner Node&#xa;(Groq: openai/gpt-oss-120b)&#xa;System Prompt &amp; Tool Binding" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E1B4B;strokeColor=#818CF8;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="langgraph_box">
+          <mxGeometry x="170" y="55" width="230" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- TOOLS NODE -->
+        <mxCell id="tools_node" value="⚙️ ToolNode&#xa;Executes Tool Calls &amp; Gathers Context" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#064E3B;strokeColor=#34D399;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="langgraph_box">
+          <mxGeometry x="170" y="220" width="230" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- END NODE -->
+        <mxCell id="end_node" value="END" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EF4444;strokeColor=#DC2626;strokeWidth=2;fontColor=#FFFFFF;fontStyle=1;fontSize=12;" vertex="1" parent="langgraph_box">
+          <mxGeometry x="40" y="340" width="80" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- MEMORY CHECKPOINTER -->
+        <mxCell id="memory_saver" value="💾 MemorySaver (Thread State Checkpointer)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#334155;strokeColor=#94A3B8;strokeWidth=1;fontColor=#F1F5F9;fontSize=11;" vertex="1" parent="langgraph_box">
+          <mxGeometry x="170" y="345" width="230" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- INTERNAL EDGES -->
+        <mxCell id="edge_start" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#10B981;strokeWidth=2;" edge="1" parent="langgraph_box" source="start_node" target="reasoner_node">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_tools_call" value="tools_condition&#xa;(needs tool)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F59E0B;strokeWidth=2;fontColor=#FCD34D;fontSize=10;fontStyle=1;" edge="1" parent="langgraph_box" source="reasoner_node" target="tools_node">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="330" y="160" />
+              <mxPoint x="330" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_tools_return" value="Tool Output&#xa;Messages" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#34D399;strokeWidth=2;fontColor=#6EE7B7;fontSize=10;fontStyle=1;" edge="1" parent="langgraph_box" source="tools_node" target="reasoner_node">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="230" y="180" />
+              <mxPoint x="230" y="180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_final_ans" value="Final Response&#xa;(no tool calls)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#EF4444;strokeWidth=2;fontColor=#FCA5A5;fontSize=10;fontStyle=1;" edge="1" parent="langgraph_box" source="reasoner_node" target="end_node">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="80" y="95" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- EXTERNAL TOOLS & BACKENDS -->
+        <!-- TOOL 1: DUCKDB -->
+        <mxCell id="tool1_box" value="📊 query_telemetry_db&#xa;DuckDB (read_only=True)&#xa;FDE_VIEWS.VW_ACTIVE_FLEET" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#1E3A8A;strokeColor=#60A5FA;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="830" y="100" width="260" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- TOOL 2: OPEN METEO -->
+        <mxCell id="tool2_box" value="🛰️ fetch_corridor_conditions&#xa;Open-Meteo Live REST API&#xa;(GPS Weather, Temp &amp; Windspeed)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#701A75;strokeColor=#F472B6;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="830" y="240" width="260" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- TOOL 3: CHROMADB -->
+        <mxCell id="tool3_box" value="📜 search_compliance_sop&#xa;ChromaDB (BAAI/bge-m3, 1024 Dim)&#xa;fde-sop-local (Cold-Chain SOP v2)" style="shape=folder;fontStyle=1;tabWidth=110;tabHeight=25;tabPosition=left;html=1;boundedLbl=1;fillColor=#78350F;strokeColor=#FBBF24;strokeWidth=2;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="830" y="370" width="260" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- CONNECTORS FROM USER TO ORCHESTRATOR -->
+        <mxCell id="conn_user_in" value="User Query" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#38BDF8;strokeWidth=2;fontColor=#BAE6FD;fontSize=11;fontStyle=1;" edge="1" parent="1" source="user" target="langgraph_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="250" y="280" />
+              <mxPoint x="250" y="280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- CONNECTORS FROM TOOLNODE TO EXTERNAL TOOLS -->
+        <mxCell id="conn_tool1" value="SQL SELECT" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#60A5FA;strokeWidth=2;fontColor=#93C5FD;fontSize=11;fontStyle=1;" edge="1" parent="1" source="tools_node" target="tool1_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="345" />
+              <mxPoint x="780" y="150" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="conn_tool2" value="HTTP GET" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F472B6;strokeWidth=2;fontColor=#FBCFE8;fontSize=11;fontStyle=1;" edge="1" parent="1" source="tools_node" target="tool2_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="790" y="345" />
+              <mxPoint x="790" y="285" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="conn_tool3" value="Vector Similarity Search" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FBBF24;strokeWidth=2;fontColor=#FDE68A;fontSize=11;fontStyle=1;" edge="1" parent="1" source="tools_node" target="tool3_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="345" />
+              <mxPoint x="780" y="425" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
