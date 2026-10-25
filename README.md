@@ -42,6 +42,10 @@ graph TD
 ## 📂 Project Structure
 
 ```text
+├── .github/
+│   └── workflows/ci.yml     # Automated CI/CD Pipeline (Linting, Tests, Deploy checks)
+├── .streamlit/
+│   └── config.toml          # Production theme & server configuration
 ├── data/
 │   ├── policy/              # Standard Operating Procedures (Cold-Chain SOP v2)
 │   └── raw/                 # Logistics & shipment telemetry datasets
@@ -54,8 +58,12 @@ graph TD
 │   ├── prompts/
 │   │   └── system_prompt.txt       # Reasoner instructions and guardrails
 │   ├── agent_tool.py               # Custom LangChain agent tools
+│   ├── bootstrap.py                # Self-healing database & vector initialization
 │   ├── orchestrator.py             # LangGraph state machine & execution loop
 │   └── ui.py                       # Streamlit application interface
+├── tests/
+│   └── test_fde.py                 # Automated unit tests & security guardrail validation
+├── DEPLOYMENT.md            # Step-by-step production deployment & secrets guide
 ├── requirements.txt
 ├── .env.example
 └── .gitignore
@@ -97,6 +105,19 @@ Configure:
 Launch the Streamlit dashboard:
 ```bash
 streamlit run src/ui.py
+```
+
+---
+
+## 🚢 Production Deployment & CI/CD
+For end-to-end production setup (Streamlit Community Cloud + GitHub Actions CI/CD):
+👉 **See the complete [DEPLOYMENT.md](DEPLOYMENT.md) guide** for architecture diagrams, secrets configuration, and automated GitOps continuous deployment.
+
+---
+
+## 🧪 Running Automated Tests
+```bash
+python -m unittest tests/test_fde.py
 ```
 
 ---

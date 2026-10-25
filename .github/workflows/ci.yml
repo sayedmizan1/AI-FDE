@@ -1,0 +1,99 @@
+name: CI/CD Pipeline & Production Readiness
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-audit:
+    name: 🔍 Lint & Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Linting & Security Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Security Check - Guard Against Leaked Secrets
+        run: |
+          echo "Verifying no .env secrets are tracked..."
+          if git ls-files | grep -E '(^|/)\.env($|\..*)' | grep -v '\.env\.example'; then
+            echo "❌ ERROR: Detected tracked .env file in git!"
+            exit 1
+          fi
+          echo "✅ No secret files tracked."
+
+      - name: Lint Code with Ruff
+        run: |
+          ruff check . --select=E9,F63,F7,F82 --show-source
+          echo "✅ Code syntax check passed."
+
+  test-and-validate:
+    name: 🧪 Unit & Integration Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-audit
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install System Dependencies for PyTorch & DuckDB
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unixodbc unixodbc-dev
+
+      - name: Install Project Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Test Suite
+        env:
+          Agent_llm: GROQ
+          GROQ_API_KEY: mock_key_for_ci_pipeline
+          Embeddings_model: LOCAL
+        run: |
+          python -m unittest tests/test_fde.py -v
+
+  production-deploy-status:
+    name: 🚀 Production Deployment Readiness
+    runs-on: ubuntu-latest
+    needs: test-and-validate
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Verify Production Assets
+        run: |
+          echo "Checking essential production files..."
+          test -f "src/ui.py" || { echo "Missing src/ui.py"; exit 1; }
+          test -f "requirements.txt" || { echo "Missing requirements.txt"; exit 1; }
+          test -f ".streamlit/config.toml" || { echo "Missing .streamlit/config.toml"; exit 1; }
+          test -f ".env.example" || { echo "Missing .env.example"; exit 1; }
+          echo "✅ All production assets verified."
+
+      - name: Deployment Instructions
+        run: |
+          echo "=========================================================="
+          echo "🎉 All CI checks passed! Repository is production-ready."
+          echo "Streamlit Community Cloud automatically redeploys from main."
+          echo "=========================================================="

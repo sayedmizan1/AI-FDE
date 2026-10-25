@@ -21,35 +21,56 @@ if str(project_root) not in sys.path:
 
 load_dotenv(project_root / ".env")
 
+# Propagate Streamlit Cloud secrets into environment if present
+try:
+    if hasattr(st, "secrets"):
+        for _k, _v in st.secrets.items():
+            if isinstance(_v, str) and _k not in os.environ:
+                os.environ[_k] = _v
+except Exception:
+    pass
+
+# Ensure DuckDB and ChromaDB are bootstrapped
+try:
+    from src.bootstrap import ensure_bootstrapped
+    ensure_bootstrapped()
+except Exception as _b_err:
+    print(f"[Warning] Bootstrap check encountered: {_b_err}")
+
 # Import the compiled graph and tools list dynamically
 from src.orchestrator import fde_agent
 
 # ==========================================
-# 2. SQL CREDENTIALS MAPPING FROM .ENV
+# 2. SQL CREDENTIALS MAPPING FROM .ENV / SECRETS
 # ==========================================
 db_host = os.getenv("SQL_SERVER_HOST", "localhost")
 db_port = os.getenv("SQL_SERVER_PORT", "1433")
 db_user = os.getenv("SQL_AGENT_USER", "USR_FDE_RO")
 db_password = os.getenv("SQL_AGENT_PASSWORD")
 
-# Engine for the Agent to write logs using its standard credentials
-connection_string = (
-    f"DRIVER={{ODBC Driver 18 for SQL Server}};"
-    f"SERVER={db_host},{db_port};"
-    f"DATABASE=master;"
-    f"UID={db_user};"
-    f"PWD={db_password};"
-    f"Encrypt=no;"
-    f"TrustServerCertificate=yes;"
-)
-
-log_params = urllib.parse.quote_plus(connection_string)
-
-log_engine = create_engine(f"mssql+pyodbc:///?odbc_connect={log_params}")
+# Optional Engine for writing audit logs to SQL Server (fail-safe if pyodbc is absent)
+log_engine = None
+try:
+    if db_password:
+        connection_string = (
+            f"DRIVER={{ODBC Driver 18 for SQL Server}};"
+            f"SERVER={db_host},{db_port};"
+            f"DATABASE=master;"
+            f"UID={db_user};"
+            f"PWD={db_password};"
+            f"Encrypt=no;"
+            f"TrustServerCertificate=yes;"
+        )
+        log_params = urllib.parse.quote_plus(connection_string)
+        log_engine = create_engine(f"mssql+pyodbc:///?odbc_connect={log_params}")
+except Exception as _e:
+    print(f"[Notice] SQL Server audit logging disabled ({_e}).")
 
 
 def write_audit_log(session_id, node_name, tool_name, content):
-    """Silently writes agent execution traces to the SQL audit table using agent permissions."""
+    """Silently writes agent execution traces to the SQL audit table if configured."""
+    if not log_engine:
+        return
     try:
         with log_engine.connect() as conn:
             conn.execute(

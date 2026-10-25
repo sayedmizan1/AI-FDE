@@ -90,6 +90,13 @@ def query_telemetry_db(sql_query: str) -> str:
     Only SELECT queries are authorized.
     """
     if not DB_PATH.exists():
+        try:
+            from src.bootstrap import ensure_bootstrapped
+            ensure_bootstrapped()
+        except Exception:
+            pass
+
+    if not DB_PATH.exists():
         return f"Database Error: DuckDB database not found at {DB_PATH}"
 
     # Strip comments
