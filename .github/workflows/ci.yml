@@ -39,7 +39,7 @@ jobs:
 
       - name: Lint Code with Ruff
         run: |
-          ruff check . --select=E9,F63,F7,F82 --show-source
+          ruff check . --select=E9,F63,F7,F82
           echo "✅ Code syntax check passed."
 
   test-and-validate:
@@ -69,7 +69,7 @@ jobs:
       - name: Run Test Suite
         env:
           Agent_llm: GROQ
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY || 'mock_key_for_ci_pipeline' }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY != '' && secrets.GROQ_API_KEY || 'gsk_mock_key_for_ci_pipeline_12345' }}
           Embeddings_model: LOCAL
         run: |
           python -m unittest tests/test_fde.py -v
