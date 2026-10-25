@@ -144,7 +144,8 @@ with st.sidebar:
 
     st.markdown("---")
     st.caption(f"Session Token: `{st.session_state.thread_id[:8]}...`")
-    st.markdown(f"**Reasoning Architecture:** `{os.getenv('Agent_llm', 'DEEPSEEK')}`")
+    st.markdown(f"**Reasoning Architecture:** `{os.getenv('Agent_llm', 'GROQ')}`")
+    st.markdown("**System Status:** `🟢 Online (Production v2.1)`")
 
     st.markdown("---")
     if st.button("🗑️ Purge Dispatch Workspace Session", use_container_width=True):
@@ -162,7 +163,7 @@ if app_mode == "🧊 Dispatch Console":
     # ------------------------------------------
     st.title("Cold-Chain Incident Control Dashboard")
     st.caption(
-        "Production Data Engineering Pipeline • Real-Time Decision Optimization Platform"
+        "🟢 Production Pipeline • Real-Time Decision Optimization Platform"
     )
 
     for entry in st.session_state.ui_messages:
