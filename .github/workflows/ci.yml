@@ -69,7 +69,7 @@ jobs:
       - name: Run Test Suite
         env:
           Agent_llm: GROQ
-          GROQ_API_KEY: mock_key_for_ci_pipeline
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY || 'mock_key_for_ci_pipeline' }}
           Embeddings_model: LOCAL
         run: |
           python -m unittest tests/test_fde.py -v
